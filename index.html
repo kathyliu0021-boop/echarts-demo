@@ -1,27 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <title>ECharts Demo</title>
+  <title>应急模型数据图表</title>
   <style>
-    #main { width: 100%; height: 500px; }
+    body { margin: 0; padding: 0; }
+    #main { width: 100vw; height: 100vh; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 </head>
 <body>
   <div id="main"></div>
+
   <script>
+    // 1. 全量数据（2.24 - 3.30）
+    const fullData = [
+        {d: '20260224', v: 15751, r: 375, b: 400, w: false}, {d: '20260225', v: 15389, r: 3242, b: 2794, w: false},
+        {d: '20260226', v: 14078, r: 3138, b: 1488, w: false}, {d: '20260227', v: 13306, r: 2450, b: 1344, w: false},
+        {d: '20260228', v: 12949, r: 1535, b: 1148, w: true},  {d: '20260301', v: 13269, r: 1490, b: 985, w: true},
+        {d: '20260302', v: 18498, r: 3640, b: 2128, w: false}, {d: '20260303', v: 19496, r: 2535, b: 1562, w: false},
+        {d: '20260304', v: 16006, r: 1864, b: 1160, w: false}, {d: '20260305', v: 16161, r: 2405, b: 1637, w: false},
+        {d: '20260306', v: 14289, r: 2151, b: 1397, w: false}, {d: '20260307', v: 7620, r: 1177, b: 877, w: true},
+        {d: '20260308', v: 6762, r: 1275, b: 786, w: true},   {d: '20260309', v: 14719, r: 1971, b: 1135, w: false},
+        {d: '20260310', v: 13995, r: 1798, b: 1344, w: false}, {d: '20260311', v: 13316, r: 1762, b: 1460, w: false},
+        {d: '20260312', v: 13597, r: 2986, b: 2065, w: false}, {d: '20260313', v: 11710, r: 1422, b: 1856, w: false},
+        {d: '20260314', v: 5121, r: 682, b: 1504, w: true},   {d: '20260315', v: 5015, r: 775, b: 1324, w: true},
+        {d: '20260316', v: 9742, r: 1934, b: 5156, w: false}, {d: '20260317', v: 11352, r: 1476, b: 2852, w: false},
+        {d: '20260318', v: 11610, r: 1082, b: 1987, w: false}, {d: '20260319', v: 14244, r: 887, b: 1591, w: false},
+        {d: '20260320', v: 14849, r: 889, b: 1817, w: false},  {d: '20260321', v: 5801, r: 558, b: 1181, w: true},
+        {d: '20260322', v: 5740, r: 676, b: 1152, w: true},   {d: '20260323', v: 17542, r: 1934, b: 1134, w: false},
+        {d: '20260324', v: 13069, r: 1476, b: 2852, w: false}, {d: '20260325', v: 10919, r: 1082, b: 1987, w: false},
+        {d: '20260326', v: 13770, r: 887, b: 1591, w: false},  {d: '20260327', v: 12402, r: 889, b: 1817, w: false},
+        {d: '20260328', v: 5241, r: 558, b: 1181, w: true},   {d: '20260329', v: 5186, r: 676, b: 1152, w: true},
+        {d: '20260330', v: 10674, r: 555, b: 1134, w: false}
+    ];
+
+    const getChartData = (isExclude) => {
+        const filtered = isExclude ? fullData.filter(i => !i.w) : fullData;
+        return {
+            dates: filtered.map(i => i.d),
+            total: filtered.map(i => i.v),
+            reduction: filtered.map(i => i.r),
+            block: filtered.map(i => i.b)
+        };
+    };
+
+    let currentView = getChartData(false);
+
     var chartDom = document.getElementById('main');
     var myChart = echarts.init(chartDom);
 
     var option = {
-      title: { text: '示例图表' },
-      xAxis: { data: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] },
-      yAxis: {},
-      series: [{ type: 'line', data: [120, 200, 150, 80, 70, 110, 130] }]
+        title: { text: '应急模型数据', left: 'center' },
+        tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+        legend: { data: ['帖子入审量', '应急-降权', '应急-屏蔽'], bottom: '0' },
+        toolbox: {
+            feature: {
+                myTool: {
+                    show: true,
+                    title: '剔除/恢复周末数据',
+                    icon: 'path://M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z',
+                    onclick: function () {
+                        const isEx = myChart._isEx || false;
+                        const nextEx = !isEx;
+                        const d = getChartData(nextEx);
+                        myChart.setOption({
+                            xAxis: { data: d.dates },
+                            series: [{ data: d.total }, { data: d.reduction }, { data: d.block }]
+                        });
+                        myChart._isEx = nextEx;
+                    }
+                }
+            }
+        },
+        xAxis: {
+            type: 'category',
+            data: currentView.dates,
+            axisLabel: { rotate: 45, formatter: (v) => v.substring(4) }
+        },
+        yAxis: [
+            { type: 'value', name: '人审量', position: 'left' },
+            { type: 'value', name: '应急处理量', position: 'right', splitLine: { show: false } }
+        ],
+        series: [
+            {
+                name: '帖子入审量',
+                type: 'line',
+                yAxisIndex: 0,
+                data: currentView.total,
+                smooth: true,
+                lineStyle: { width: 3, color: '#5470c6' },
+                markLine: {
+                    symbol: ['none', 'none'],
+                    label: { position: 'end', formatter: '{b}', backgroundColor: '#ff4d4f', color: '#fff', padding: [4, 8], borderRadius: 4 },
+                    lineStyle: { color: '#ff4d4f', type: 'dashed', width: 2 },
+                    data: [{ xAxis: '20260316', name: '突发霍尔木兹海峡封锁' }]
+                }
+            },
+            {
+                name: '应急-降权',
+                type: 'bar',
+                stack: 'AI',
+                yAxisIndex: 1,
+                data: currentView.reduction,
+                itemStyle: { color: '#91cc75' }
+            },
+            {
+                name: '应急-屏蔽',
+                type: 'bar',
+                stack: 'AI',
+                yAxisIndex: 1,
+                data: currentView.block,
+                itemStyle: { color: '#fac858' }
+            }
+        ],
+        dataZoom: [{ type: 'slider', start: 0, end: 100 }]
     };
 
     myChart.setOption(option);
   </script>
 </body>
 </html>
+
