@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>ECharts Demo</title>
+  <style>
+    #main { width: 100%; height: 500px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div id="main"></div>
+  <script>
+    var chartDom = document.getElementById('main');
+    var myChart = echarts.init(chartDom);
+
+    var option = {
+      title: { text: '示例图表' },
+      xAxis: { data: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] },
+      yAxis: {},
+      series: [{ type: 'line', data: [120, 200, 150, 80, 70, 110, 130] }]
+    };
+
+    myChart.setOption(option);
+  </script>
+</body>
+</html>
